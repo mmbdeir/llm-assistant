@@ -1,0 +1,4 @@
+src/llm-voice-assistant-client/audio-input/
+src/llm-voice-assistant-client/audio-response/
+src/llm-voice-assistant-client/.venv/
+src/llm-voice-assistant-client/chat-history
