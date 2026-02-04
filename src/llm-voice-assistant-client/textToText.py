@@ -9,6 +9,7 @@ import requests
 from mcp_client import MCPClient
 import asyncio
 import threading
+import json
 
 class textToText:
     def __init__(self, llm_model, base_url, llm_api_key):
@@ -152,15 +153,15 @@ class textToText:
 
         sentence = 1
         response = ""
-        tool_calls = []
+        needed_tools = []
         for chunk in stream:
             # Make another if statement to handle mcp request.
             # print("Chunk: ", chunk)
             if chunk.choices[0].delta.content != None:
                 part = chunk.choices[0].delta.content
+
                 
                 response = response + part
-                print("response: ", response)
             
                 # Chunk the response into sentences and yield each one as it is completed
                 sentences = sent_tokenize(response)
@@ -175,14 +176,22 @@ class textToText:
                 #The second chunk has the name of the function, each later chunk has a part of the args. Get the name, and concatinate the args into one object from the separate chunks and
                 # pass that as a param to a tool call function.
                 #Let it handle multiple tool call requests at once.
-                print(chunk.choices[0].delta.tool_calls)
-                tc = chunk.choices[0].delta.tool_calls
-                for i, tool_call in enumerate(tc):
-                    if tool_call.function.name != None:
-                        tool_calls.append({"name": tool_call.function.name, "arguments": ""})
-                    tool_calls[i]["arguments"] += tool_call.function.arguments
-                print("Names to be called: ", *tool_calls)
-                
+                tool_calls = chunk.choices[0].delta.tool_calls
+
+                for i, tool_call in enumerate(tool_calls):
+                    if tool_call.function.name is not None:
+                        needed_tools.append({"name": tool_call.function.name, "arguments_buffer": ""})
+                    needed_tools[i]["arguments_buffer"] += tool_call.function.arguments
+            
+        for tool in needed_tools:
+            if tool["arguments_buffer"]:
+                tool["arguments"] = json.loads(tool["arguments_buffer"])
+            else:
+                tool["arguments"] = {}
+            del tool["arguments_buffer"]
+
+
+        print(response, needed_tools)
 
         # language = self.langDetect(sentences[sentence - 1], transcription)
         # yield { "token": part, "sentence": sentences[sentence - 1], "language": language }
