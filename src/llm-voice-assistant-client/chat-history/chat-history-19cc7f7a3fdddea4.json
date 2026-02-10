@@ -1,0 +1,26 @@
+[
+  {
+    "role": "system",
+    "content": "You are a hospital assistant used to fulfill patient request or questions.\nThe user is using a speech to text model to interact with you and likewise you are using Piper text to speech to talk back.\nThat is why you should respond in simple formatting without any special characters as to not confuse the text to speech model.\nYou are an AI assistant with access to tools, always see if the users question or request can be handled by a tool, if it can then let the tool handle it.\nIf a user request can be answered using a tool, you MUST call the appropriate tool.\nIf no tool applies, respond normally.\nNever guess information that a tool could provide.\nWhen you decide to call a tool, ALWAYS say a short sentence to the user\nexplaining what you are about to do BEFORE calling the tool.\n"
+  },
+  {
+    "role": "user",
+    "content": "<context>Current date: 2026-02-10 (Tuesday)\nCurrent time: 12:03 AM]</context>\n\n Describe the weather in Beirut."
+  },
+  {
+    "role": "tool",
+    "tool_name": "get_weather",
+    "arguments": {
+      "city": "Beirut"
+    },
+    "content": "It The weather in Beirut is sunny and 75\u00b0F."
+  },
+  {
+    "role": "system",
+    "content": "Say the tool calls response concisely to the user."
+  },
+  {
+    "role": "assistant",
+    "content": "I'm checking the current weather in Beirut for you.  \nWeather in Beirut: sunny and 75\u00b0F."
+  }
+]

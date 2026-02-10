@@ -21,24 +21,12 @@ configs:
           --port 9999
 
       models:
-        LFM2-8B-A1B-GGUF_UD-Q4_K_XL:
+        llama:
           proxy: "http://127.0.0.1:9999"
           cmd: >
             $${latest-llama}
-            -hf unsloth/LFM2-8B-A1B-GGUF_UD:Q4_K_XL
-            -ngl 99
-            --ctx-size 8192
-            --jinja
-            --no-mmap
-            --no-warmup
-
-
-        Gemma-3-27b-it-GGUF_UD-Q4_K_XL:
-          proxy: "http://127.0.0.1:9999"
-          cmd: >
-            $${latest-llama}
-            -hf unsloth/gemma-3-27b-it-GGUF:UD-Q4_K_XL
-            -ngl 99
+            -hf meta-llama/Llama-3.1-8B-Instruct
+            -ngl 60
             --ctx-size 8192
             --jinja
             --no-mmap
@@ -55,22 +43,12 @@ configs:
             --no-mmap
             --no-warmup
 
-        Llama-3.3-70B-Instruct-GGUF:UD-Q4_K_XL:
-          proxy: "http://127.0.0.1:9999"
-          cmd: >
-            $${latest-llama}
-            -hf unsloth/Llama-3.3-70B-Instruct-GGUF:UD-Q4_K_XL
-            -ngl 99
-            --ctx-size 8192
-            --jinja
-            --no-mmap
-            --no-warmup
-
 services:
   init-speaches:
     command: |
       /bin/bash -c '
-        
+        uv tool run speaches-cli model download speaches-ai/Kokoro-82M-v1.0-ONNX
+        uv tool run speaches-cli model download rtlingo/mobiuslabsgmbh-faster-whisper-large-v3-turbo
       '
     container_name: init-speaches
     depends_on:

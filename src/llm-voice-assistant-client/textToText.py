@@ -10,6 +10,10 @@ from mcp_client import MCPClient
 import asyncio
 import threading
 import json
+import tomllib
+
+with open("config.toml", "rb") as f:
+    data = tomllib.load(f)
 
 class textToText:
     def __init__(self, llm_model, base_url, llm_api_key):
@@ -102,6 +106,17 @@ class textToText:
         
         language = transcription["language"] if language == None else language
         return language.lower()
+    
+    def callFunctionThread(self, tool_name, tool_args):
+        future = asyncio.run_coroutine_threadsafe(
+            self.mcp.session.call_tool(tool_name, tool_args),
+            self.loop
+        )
+        try:
+            return future.result()
+        except Exception as e:
+            print(f"Tool {tool_name} did not return in time: {e}")
+            return None
 
     def chatWithHistory(self, transcription, chatHistoryFile, systemPrompt=""):
         # Add date and time into to system prompt
@@ -130,7 +145,7 @@ class textToText:
 
             with open(chatHistoryFile, 'w') as file:
                 file.write(json_string)
-                
+
             with open(chatHistoryFile, "r") as file:
                 json_string = file.read()
 
@@ -154,35 +169,35 @@ class textToText:
         sentence = 1
         response = ""
         needed_tools = []
+        sentences = []
         for chunk in stream:
-            # Make another if statement to handle mcp request.
-            # print("Chunk: ", chunk)
             if chunk.choices[0].delta.content != None:
                 part = chunk.choices[0].delta.content
 
-                
                 response = response + part
-            
+
                 # Chunk the response into sentences and yield each one as it is completed
                 sentences = sent_tokenize(response)
                 while sentence < len(sentences):
                     language = self.langDetect(sentences[sentence - 1], transcription)
-                    yield { "token": part, "sentence": sentences[sentence - 1], "language": language }
+                    yield { "sentence": sentences[sentence - 1], "language": language }
                     sentence += 1
-                
                 else:
-                    yield { "token": part, "sentence": "" }
+                    yield { "sentence": "" }
+
             if chunk.choices[0].delta.tool_calls != None:
                 #The second chunk has the name of the function, each later chunk has a part of the args. Get the name, and concatinate the args into one object from the separate chunks and
                 # pass that as a param to a tool call function.
                 #Let it handle multiple tool call requests at once.
                 tool_calls = chunk.choices[0].delta.tool_calls
 
+                # You should index by tool_call.id instead for multiple mcp tools at once.
                 for i, tool_call in enumerate(tool_calls):
                     if tool_call.function.name is not None:
                         needed_tools.append({"name": tool_call.function.name, "arguments_buffer": ""})
                     needed_tools[i]["arguments_buffer"] += tool_call.function.arguments
-            
+
+        # Parses arg parts into one arg then calls tool with args.
         for tool in needed_tools:
             if tool["arguments_buffer"]:
                 tool["arguments"] = json.loads(tool["arguments_buffer"])
@@ -190,25 +205,88 @@ class textToText:
                 tool["arguments"] = {}
             del tool["arguments_buffer"]
 
+            try:
+                tool_response = self.callFunctionThread(tool["name"], tool["arguments"])
+                print("Tool response: ", tool_response)
+                tool_response_text = tool_response.structuredContent['result']
+
+                chatHistory.append({
+                    "role": "tool",
+                    "tool_name": tool["name"],
+                    "arguments": tool["arguments"],
+                    "content": tool_response_text
+                })
+
+                chatHistory.append({
+                    "role": "system",
+                    "content": (
+                        "Explain the tool result in ONE concise sentence. Do not add extra commentary."
+                    )
+                })
+
+                second_stream = self.client.chat.completions.create(
+                    model = self.llm_model, 
+                    messages = chatHistory,
+                    stream = True,
+                )
+
+                sentence = 1
+                response = ""
+                sentences = []
+                
+                for chunk in second_stream:
+                    if chunk.choices[0].delta.content != None:
+                        part = chunk.choices[0].delta.content
+
+                        response = response + part
+
+                        # Chunk the response into sentences and yield each one as it is completed
+                        sentences = sent_tokenize(response)
+                        while sentence < len(sentences):
+                            language = self.langDetect(sentences[sentence - 1], transcription)
+                            yield { "sentence": sentences[sentence - 1], "language": language }
+                            sentence += 1
+                        else:
+                            yield { "sentence": "" }
+
+                # Chunk the response into sentences and yield each one as it is completed
+
+                # sentences = sent_tokenize(tool_response_text)
+                # while sentence < len(sentences):
+                #     language = self.langDetect(sentences[sentence - 1], transcription)
+                #     yield { "sentence": sentences[sentence - 1], "language": language }
+                #     sentence += 1
+                # else:
+                #     yield { "sentence": "" }
+
+                # Add tool result to chat history
+                
+
+            except Exception as e:
+                print(f"Error calling tool or gettings response of: {tool['name']}: {e}")
+
+        language = self.langDetect(sentences[sentence - 1], transcription)
+        yield { "sentence": sentences[sentence - 1], "language": language }
+
+        if response:
+            chatHistory.append(
+                {
+                'role': 'assistant',
+                'content': response,
+                }
+            )
 
         print(response, needed_tools)
 
-        # language = self.langDetect(sentences[sentence - 1], transcription)
-        # yield { "token": part, "sentence": sentences[sentence - 1], "language": language }
 
         # Append the assistant's response to the chat history
-        chatHistory.append(
-            {
-            'role': 'assistant',
-            'content': response,
-            }
-        )
 
         # Delete the info role so it doesn't hog the LLM's context window
-        chatHistory[-2] = {
-            'role': 'user',
-            'content': transcription["transcript"],
-            }
+
+
+        user_indexes = [i for i, msg in enumerate(chatHistory) if msg.get("role") == "user"]
+        if len(user_indexes) >= data["max_history"]:
+            del chatHistory[1 : user_indexes[-data["max_history"]]]
 
         # Write chat history to file
         json_string = json.dumps(chatHistory, indent=2)

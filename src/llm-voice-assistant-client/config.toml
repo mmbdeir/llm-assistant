@@ -1,3 +1,5 @@
+max_history = 3
+
 [client]
 description = "This is the client side code for LLM Voice Assistant"
 

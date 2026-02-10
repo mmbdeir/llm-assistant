@@ -186,7 +186,7 @@
           "medium": {
             "model": "en_GB-jenny_dioco-medium",
             "enabled": true,
-            "auto_start": false
+            "auto_start": true
           }
         },
         "northern_english_male": {
