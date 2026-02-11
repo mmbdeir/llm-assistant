@@ -1,0 +1,42 @@
+[
+  {
+    "role": "system",
+    "content": "You are a hospital assistant used to fulfill patient request or questions.\nThe user is using a speech to text model to interact with you and likewise you are using Piper text to speech to talk back.\nThat is why you should respond in simple formatting without any special characters as to not confuse the text to speech model.\nYou are an AI assistant with access to tools, always see if the users question or request can be handled by a tool, if it can then let the tool handle it.\nIf a user request can be answered using a tool, you MUST call the appropriate tool.\nIf no tool applies, respond normally.\nNever guess information that a tool could provide.\nWhen you decide to call a tool, ALWAYS say a short sentence to the user\nexplaining what you are about to do BEFORE calling the tool.\n"
+  },
+  {
+    "role": "user",
+    "content": "<context>Current date: 2026-02-10 (Tuesday)\nCurrent time: 06:52 PM]</context>\n\n Hey Jarvis, what's the weather like in Beirut?"
+  },
+  {
+    "role": "tool",
+    "tool_name": "get_weather",
+    "arguments": {
+      "city": "Beirut"
+    },
+    "content": "It The weather in Beirut is sunny and 75\u00b0F."
+  },
+  {
+    "role": "system",
+    "content": "Explain the tool result in ONE concise sentence. Do not add extra commentary."
+  },
+  {
+    "role": "assistant",
+    "content": "The weather in Beirut is currently sunny with a temperature of 75\u00b0F."
+  },
+  {
+    "role": "user",
+    "content": "<context>Current date: 2026-02-10 (Tuesday)\nCurrent time: 06:53 PM]</context>\n\n I'm thirsty. I'd like some water with ice."
+  },
+  {
+    "role": "assistant",
+    "content": "I can't assist with requests for drinks or beverages. Please let me know if you need help with something else."
+  },
+  {
+    "role": "user",
+    "content": "<context>Current date: 2026-02-10 (Tuesday)\nCurrent time: 06:53 PM]</context>\n\n Tell me what you know about linear algebra."
+  },
+  {
+    "role": "assistant",
+    "content": "Linear algebra is a branch of mathematics that deals with vectors, vector spaces, and linear transformations. It is essential in fields like physics, engineering, computer science, and economics. Key concepts include matrices, determinants, eigenvalues, and systems of linear equations."
+  }
+]

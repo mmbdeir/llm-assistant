@@ -17,10 +17,10 @@ def get_weather(city: str) -> str:
 @mcp.tool()
 def get_mars_weather() -> str:
     """
-    Get weather on mars for a specific location.
+    Get weather on mars..
     """
     # In a real server, you would call a weather API here
-    return f"Hot and dusty."
+    return f"The weather on mars is Hot and dusty."
 
 
 # Run the server using stdio transport (recommended for local use)

@@ -231,6 +231,7 @@ class textToText:
                 )
 
                 sentence = 1
+                # Stops first llm response that comes when llm gives tool arguments from being spoken.
                 response = ""
                 sentences = []
                 
