@@ -68,7 +68,7 @@ class textToText:
             self.loop
         )
         fut.result()
-   
+
 
     def ollamaDownloadModel(self, base_url, llm_model):
         try:
@@ -234,7 +234,7 @@ class textToText:
                 # Stops first llm response that comes when llm gives tool arguments from being spoken.
                 response = ""
                 sentences = []
-                
+
                 for chunk in second_stream:
                     if chunk.choices[0].delta.content != None:
                         part = chunk.choices[0].delta.content

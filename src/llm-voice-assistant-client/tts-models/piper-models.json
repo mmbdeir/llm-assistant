@@ -782,7 +782,7 @@
           "medium": {
             "model": "ro_RO-mihai-medium",
             "enabled": true,
-            "auto_start": false
+            "auto_start": true
           }
         }
       }
