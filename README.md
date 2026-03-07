@@ -15,7 +15,7 @@ If you already have `python3.11`
 1. `python3 -m venv venv`
 
 Now. 
-1. `source venv/bin/activate` (Linux) or `.\venv\Scripts\Activate.ps1` (Windows)
+1. `source .venv/bin/activate` (Linux) or `.\.venv\Scripts\Activate.ps1` (Windows)
 2. `pip install -r requirements.txt`
 3. `python3 main.py`
 
@@ -29,6 +29,7 @@ Where the `docker-compose.yml` is run `docker compose up -d`.
 - Client server model
 - Fully multilingual pipeline
 - Streamed reponses
+- Calls configured tools
 
 ## Configuring
 - General configuration changes are made at `src/llm-voice-assistant-client/config.toml`.
